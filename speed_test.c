@@ -2,10 +2,17 @@
 // Created by LucaIlari on 4/4/2024.
 //
 #include <stdio.h>
+#ifdef WIN32
+#include <winsock2.h>
+#include <windows.h>
+#else
+#include <sys/socket.h>
+#include <string.h>
+#include <malloc.h>
+#endif
 
 #include "speed_test.h"
 #include "tcp_functions.h"
-#include "socket_t.h"
 
 enum StatusCodes startSpeedTest(socket_t sockfd, const int BUFFER_SIZE){
     char *buff = malloc(BUFFER_SIZE * sizeof(char));
