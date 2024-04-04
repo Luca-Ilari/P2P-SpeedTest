@@ -14,7 +14,9 @@
 #include "speed_test.h"
 #include "tcp_functions.h"
 
-enum StatusCodes startSpeedTest(socket_t sockfd, const int BUFFER_SIZE){
+//TODO: should be multi threaded and multi socket?
+enum StatusCodes startSpeedTest(socket_t sockfd, int BUFFER_SIZE){
+    int packet_size = 1024*100; //Send
     char *buff = malloc(BUFFER_SIZE * sizeof(char));
     if(buff == NULL)
         return SPEEDTEST_ERROR;
@@ -23,10 +25,14 @@ enum StatusCodes startSpeedTest(socket_t sockfd, const int BUFFER_SIZE){
     memset(buff,'A', BUFFER_SIZE-1);
     buff[BUFFER_SIZE-1] = 'B';
 
-    send(sockfd,buff, BUFFER_SIZE/2, 0);
-    printf("Half speed test\n");
-    send(sockfd,buff+(BUFFER_SIZE/2), BUFFER_SIZE/2, 0);
-
+    for (int  i = 0; i < (BUFFER_SIZE/packet_size); ++i){
+        int error = send(sockfd,buff+(i*packet_size), packet_size, 0);
+        if (error < 0){
+            printf("ERROR ON SEND\nSpeed test failed");
+            closeSocket(sockfd);
+            return SPEEDTEST_ERROR;
+        }
+    }
     printf("Speed test ended\n");
     closeSocket(sockfd);
     return FINISHED;
