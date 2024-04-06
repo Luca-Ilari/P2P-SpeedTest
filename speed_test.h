@@ -12,7 +12,14 @@ enum StatusCodes{
     SPEEDTEST_ERROR = 0
 };
 
-enum StatusCodes startSpeedTest(socket_t sockfd, const int BUFFER_SIZE);
+struct startSpeedTestParams{
+    //char *ip;
+    //unsigned int port_number;
+    struct sockaddr_in *serv_addr;
+    int *speedtest_ended;
+};
 
+void *startSpeedTest(void *params);
+enum StatusCodes receiveSpeedTest(socket_t serverSocket);
 
 #endif //SPEEDTEST_SPEED_TEST_H

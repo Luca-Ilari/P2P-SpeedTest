@@ -11,7 +11,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <string.h>
 #endif
 #include "tcp_functions.h"
 
