@@ -2,6 +2,7 @@
 // Created by LucaIlari on 4/4/2024.
 //
 #include <stdio.h>
+#include <stdlib.h>
 #ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
@@ -16,6 +17,7 @@
 #include "tcp_functions.h"
 #include "utils.h"
 
+/**This function send buffer filled with 'A' to socket until the connection drops or */
 void *startSpeedTest(void *param){
     struct startSpeedTestParams struct_params = *(struct startSpeedTestParams*)param;
     struct sockaddr_in serv_addr = *struct_params.serv_addr;
@@ -33,7 +35,8 @@ void *startSpeedTest(void *param){
 
     printf("Starting speedtest\n");
     memset(buff, 'A', packet_len - 1);
-
+    long long int *bytes_sent = malloc(sizeof(long long int));
+    *bytes_sent = 0;
     while(*struct_params.speedtest_ended == 0){
         size_t error = send(socket, buff, packet_len, 0);
         if (error <= 0){
@@ -41,6 +44,7 @@ void *startSpeedTest(void *param){
             closeSocket(socket);
             return NULL;
         }
+        *bytes_sent += (int)error;
     }
     memset(buff, 'B', packet_len - 1);
     size_t error = send(socket, buff, packet_len, 0);
@@ -51,32 +55,28 @@ void *startSpeedTest(void *param){
     }
     printf("Speed test ended\n");
     closeSocket(socket);
-    return NULL;
+    return bytes_sent;
 }
 
-//TODO: Should start a new thread every new socket
 /**This function receive the buffer sent by the client.*/
-enum StatusCodes receiveSpeedTest(socket_t serverSocket){
-    size_t buffer_size = 1024, n;
+void *receiveSpeedTest(void *socketParam){//TODO: should be renamed to "downloadTest"?
+    int socket = (int)socketParam;
+    size_t buffer_size = 1024, err;
     char buffer[buffer_size];
     memset(&buffer,'\0', sizeof(buffer));
-
-    socket_t newsockfd = acceptNewConnection(serverSocket);
-    if (newsockfd < 0)
-        return SPEEDTEST_ERROR;
 
     printf("Starting speed test\n");
 
     while(findChar(buffer, 'B', buffer_size) < 0){
-        n = recv(newsockfd, buffer, sizeof(buffer), 0);
-        if (n <= 0){
+        err = recv(socket, buffer, sizeof(buffer), 0);
+        if (err <= 0){
             printf("ERROR while testing\n");
-            closeSocket(newsockfd);
-            return SPEEDTEST_ERROR;
+            closeSocket(socket);
+            return NULL;
         }
     }
 
     printf("Speed test finished\n");
-    closeSocket(newsockfd);
-    return FINISHED;
+    closeSocket(socket);
+    return NULL;
 }

@@ -15,7 +15,6 @@
 
 #include "tcp_functions.h"
 #include "speed_test.h"
-
 void server(int port_number){
     socket_t sockfd;
     //TODO: receive variable len buffer size
@@ -35,23 +34,32 @@ void server(int port_number){
         return;
     }
     while(1){
-        receiveSpeedTest(sockfd);
+        socket_t newsockfd = acceptNewConnection(sockfd);
+        if (newsockfd > 0){
+            pthread_t thread = 0;
+            int err = pthread_create(&thread, NULL, &receiveSpeedTest, (void*)newsockfd);
+            if (err != 0) {
+                printf("Error while creating a thread");
+            }
+        }else{
+            printf("Error while connecting to client");
+        }
     }
 }
 
 void client(char *ip, unsigned int port_number, unsigned int speed_test_time_second, unsigned int connection_number) {
     struct sockaddr_in serv_addr;
-
-    printf("Starting client\n");
+    int speed_test_ended = 0;
+    pthread_t thread_list[connection_number];
+    struct startSpeedTestParams params;
 
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr(ip);
     serv_addr.sin_port = htons(port_number);
 
-    int speed_test_ended = 0;
-    pthread_t thread_list[connection_number];
-    struct startSpeedTestParams params;
+    printf("Starting client\n");
+
     params.speedtest_ended = &speed_test_ended;
     params.serv_addr = &serv_addr;
     for (int i = 0; i < connection_number; ++i) {
@@ -62,10 +70,16 @@ void client(char *ip, unsigned int port_number, unsigned int speed_test_time_sec
     }
     sleep(speed_test_time_second);
     speed_test_ended = 1;
-
+    long long int total_bytes_sent = 0;
     for (int i = 0; i < connection_number; ++i){
-        pthread_join(thread_list[i],NULL);
+        void *tmp=0;
+        pthread_join(thread_list[i],&tmp);
+        total_bytes_sent = *(long long int*)tmp;
+        free(tmp);
+        tmp = NULL;
     }
+    double speed = (total_bytes_sent / speed_test_time_second) / 125000; //speed in MegaBit/s
+    printf("Average speed %fMbit/s\n", speed);
 }
 
 int main(int argc, char* argv[]) {
