@@ -17,21 +17,14 @@
 #include "tcp_functions.h"
 #include "utils.h"
 
-/**This function send buffer filled with 'A' to socket until the connection drops or */
-void *startSpeedTest(void *param){
+/**This function send buffer filled with 'A' to socket until the connection drops or param->speedtest_ended is 0*/
+void *uploadToSocket(void *param){
     struct startSpeedTestParams struct_params = *(struct startSpeedTestParams*)param;
-    struct sockaddr_in serv_addr = *struct_params.serv_addr;
+    socket_t socket = struct_params.socket;
 
     int packet_len = 1024;
     char buff[packet_len];
 
-    socket_t socket = setupSocket();
-
-    int x = connect(socket, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
-    if (x < 0){
-        perror("Error while connecting to server");
-        return NULL;
-    }
 
     printf("Starting speedtest\n");
     memset(buff, 'A', packet_len - 1);
@@ -59,7 +52,7 @@ void *startSpeedTest(void *param){
 }
 
 /**This function receive the buffer sent by the client.*/
-void *receiveSpeedTest(void *socketParam){//TODO: should be renamed to "downloadTest"?
+void *downloadFromSocket(void *socketParam){
     int socket = (int)socketParam;
     size_t buffer_size = 1024, err;
     char buffer[buffer_size];

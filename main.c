@@ -37,7 +37,7 @@ void server(int port_number){
         socket_t newsockfd = acceptNewConnection(sockfd);
         if (newsockfd > 0){
             pthread_t thread = 0;
-            int err = pthread_create(&thread, NULL, &receiveSpeedTest, (void*)newsockfd);
+            int err = pthread_create(&thread, NULL, &downloadFromSocket, (void*)newsockfd);
             if (err != 0) {
                 printf("Error while creating a thread");
             }
@@ -60,10 +60,18 @@ void client(char *ip, unsigned int port_number, unsigned int speed_test_time_sec
 
     printf("Starting client\n");
 
-    params.speedtest_ended = &speed_test_ended;
-    params.serv_addr = &serv_addr;
     for (int i = 0; i < connection_number; ++i) {
-        int err = pthread_create(&thread_list[i], NULL, &startSpeedTest, &params);
+
+        socket_t socket = setupSocket();
+
+        int x = connect(socket, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+        if (x < 0){
+            perror("Error while connecting to server");
+            return;
+        }
+        params.speedtest_ended = &speed_test_ended;
+        params.socket = socket;
+        int err = pthread_create(&thread_list[i], NULL, &uploadToSocket, &params);
         if (err != 0) {
             printf("Error while creating thread: %d", i);
         }
@@ -88,7 +96,7 @@ int main(int argc, char* argv[]) {
     if (argc == 1){//Started as server
         server(port_number);
     }else{ // started as client
-        client(argv[1], port_number, 5, 4);
+        client(argv[1], port_number, 5, 1);
     }
     return 0;
 }

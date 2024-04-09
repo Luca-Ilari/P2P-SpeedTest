@@ -13,11 +13,11 @@ enum StatusCodes{
 };
 
 struct startSpeedTestParams{
-    struct sockaddr_in *serv_addr;
+    socket_t socket;
     int *speedtest_ended;
 };
 
-void *startSpeedTest(void *params);
-void *receiveSpeedTest(void *socketParam);
+void *uploadToSocket(void *params);
+void *downloadFromSocket(void *socketParam);
 
 #endif //SPEEDTEST_SPEED_TEST_H
