@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #ifdef WIN32
 #include <winsock2.h>
-#include <windows.h>
+#include <pthread.h>
+#include <unistd.h>
+
 #else
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -17,8 +19,6 @@
 #include "speed_test.h"
 void server(int port_number){
     socket_t sockfd;
-    //TODO: receive variable len buffer size
-    //unsigned int max_speed_test_len = 1000000000; //1000 MB. This is the maximum length of the data sent by the client
     struct sockaddr_in serv_addr;
 
     printf("Starting server\n");
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     if (argc == 1){//Started as server
         server(port_number);
     }else{ // started as client
-        client(argv[1], port_number, 5, 1);
+        client(argv[1], port_number, 10, 1);
     }
     return 0;
 }
