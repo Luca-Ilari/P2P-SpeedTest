@@ -84,15 +84,15 @@ void client(char *ip, unsigned int port_number, unsigned int speed_test_time_sec
         pthread_join(thread_list[i],&tmp);
         total_bytes_sent += *(double*)tmp;
 #ifdef WIN32
-        printf("Byte sent by thread[%llu] = %f\n", thread_list[i], *(double*)tmp);
+        printf("Byte sent by thread[%llu] = %.0f\n", thread_list[i], *(double*)tmp);
 #else
-        printf("Byte sent by thread[%lu] = %f\n", thread_list[i], *(double*)tmp);
+        printf("Byte sent by thread[%lu] = %.0f\n", thread_list[i], *(double*)tmp);
 #endif
         free(tmp);
         tmp = NULL;
     }
     double speed = (total_bytes_sent / speed_test_time_second) / 125000; //speed in MegaBit/s
-    printf("Upload test finished\nAverage speed %fMbit/s\n", speed);
+    printf("Upload test finished\nAverage speed %.2f Mbit/s\n", speed);
 }
 
 int main(int argc, char* argv[]) {
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     if (argc == 1){//Started as server
         server(port_number);
     }else{ // started as client
-        client(argv[1], port_number, 5, 2);
+        client(argv[1], port_number, 10, 1);
     }
     return 0;
 }
