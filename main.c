@@ -58,7 +58,7 @@ void client(char *ip, unsigned int port_number, unsigned int speed_test_time_sec
     serv_addr.sin_addr.s_addr = inet_addr(ip);
     serv_addr.sin_port = htons(port_number);
 
-    printf("Starting client\n");
+    printf("Starting upload test\n");
 
     for (int i = 0; i < connection_number; ++i) {
 
@@ -78,16 +78,17 @@ void client(char *ip, unsigned int port_number, unsigned int speed_test_time_sec
     }
     sleep(speed_test_time_second);
     speed_test_ended = 1;
-    long long int total_bytes_sent = 0;
+    double total_bytes_sent = 0;
     for (int i = 0; i < connection_number; ++i){
         void *tmp=0;
         pthread_join(thread_list[i],&tmp);
-        total_bytes_sent = *(long long int*)tmp;
+        total_bytes_sent += *(double*)tmp;
+        printf("Byte sent by thread[%llu] = %f\n", thread_list[i], *(double*)tmp);
         free(tmp);
         tmp = NULL;
     }
     double speed = (total_bytes_sent / speed_test_time_second) / 125000; //speed in MegaBit/s
-    printf("Average speed %fMbit/s\n", speed);
+    printf("Upload test finished\nAverage speed %fMbit/s\n", speed);
 }
 
 int main(int argc, char* argv[]) {
@@ -96,7 +97,7 @@ int main(int argc, char* argv[]) {
     if (argc == 1){//Started as server
         server(port_number);
     }else{ // started as client
-        client(argv[1], port_number, 10, 1);
+        client(argv[1], port_number, 5, 2);
     }
     return 0;
 }

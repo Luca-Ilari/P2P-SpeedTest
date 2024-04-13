@@ -24,11 +24,9 @@ void *uploadToSocket(void *param){
 
     int packet_len = 1024;
     char buff[packet_len];
-
-
-    printf("Starting speedtest\n");
+    printf("Socket %llu connected\n", socket);
     memset(buff, 'A', packet_len - 1);
-    long long int *bytes_sent = malloc(sizeof(long long int));
+    double *bytes_sent = malloc(sizeof(long long int));
     *bytes_sent = 0;
     while(*struct_params.speedtest_ended == 0){
         size_t error = send(socket, buff, packet_len, 0);
@@ -46,7 +44,6 @@ void *uploadToSocket(void *param){
         closeSocket(socket);
         return NULL;
     }
-    printf("Speed test ended\n");
     closeSocket(socket);
     return bytes_sent;
 }
