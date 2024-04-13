@@ -12,11 +12,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
-
 #endif
 
 #include "tcp_functions.h"
 #include "speed_test.h"
+
 void server(int port_number){
     socket_t sockfd;
     struct sockaddr_in serv_addr;
@@ -83,7 +83,11 @@ void client(char *ip, unsigned int port_number, unsigned int speed_test_time_sec
         void *tmp=0;
         pthread_join(thread_list[i],&tmp);
         total_bytes_sent += *(double*)tmp;
+#ifdef WIN32
         printf("Byte sent by thread[%llu] = %f\n", thread_list[i], *(double*)tmp);
+#else
+        printf("Byte sent by thread[%lu] = %f\n", thread_list[i], *(double*)tmp);
+#endif
         free(tmp);
         tmp = NULL;
     }
